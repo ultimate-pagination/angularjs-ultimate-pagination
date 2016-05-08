@@ -4,34 +4,42 @@ import {getPaginationModel, ITEM_TYPES} from 'ultimate-pagination';
 angular.module('ngUltimatePagination', []);
 
 angular.module('ngUltimatePagination')
-  .provider('ultimatePaginationTemplates', function() {
-    var itemTypeToTemplateUrlMap = null;
+  .provider('ultimatePaginationThemes', function() {
+    var themes = Object.create(null);
+    var defaultTheme = 'default';
 
     return {
-      setItemTypeToTemplateUrlMap: setItemTypeToTemplateUrlMap,
+      registerTheme: registerTheme,
+      setDefaultTheme: setDefaultTheme,
       $get: $get
     };
 
     //////////
 
-    function setItemTypeToTemplateUrlMap(_itemTypeToTemplateUrlMap_) {
-      itemTypeToTemplateUrlMap = _itemTypeToTemplateUrlMap_
+    function registerTheme(themeName, itemTypeToTemplateUrlMap) {
+      themes[themeName] = itemTypeToTemplateUrlMap;
+    }
+
+    function setDefaultTheme(_defaultTheme_) {
+      defaultTheme = _defaultTheme_;
     }
 
     $get.$inject = ['$log']
     function $get($log) {
       return {
-        getTemplateUrlByItemType: function(itemType) {
+        getItemTemplateUrl: function(themeName, itemType) {
           var templateUrl;
+          var resolvedThemeName = themeName || defaultTheme;
+          var itemTypeToTemplateUrlMap = themes[resolvedThemeName];
           if (itemTypeToTemplateUrlMap) {
             templateUrl = itemTypeToTemplateUrlMap[itemType];
             if (templateUrl) {
               return templateUrl;
             } else {
-              $log.error(`"itemTypeToTemplateUrlMap" does not have a value for item type: ${itemType}`);
+              $log.error(`Theme "${resolvedThemeName}" does not have a template url for item type "${itemType}"`);
             }
           } else {
-            $log.error('"itemTypeToTemplateUrlMap" is not registered in "ultimatePaginationTemplatesProvider"');
+            $log.error(`Theme "${resolvedThemeName}" is not registered in "ultimatePaginationThemesProvider"`);
           }
         }
       };
@@ -45,6 +53,7 @@ angular.module('ngUltimatePagination')
       <ultimate-pagination-wrapper>
         <ultimate-pagination-item
           ng-repeat="item in $ctrl.paginationModel track by item.key"
+          theme="$ctrl.theme"
           type="::item.type"
           value="::item.value"
           is-active="item.isActive"
@@ -55,6 +64,7 @@ angular.module('ngUltimatePagination')
     controller: UltimatePaginationController,
     replace: true,
     bindings: {
+      theme: '<',
       currentPage: '<',
       totalPages: '<',
       onChange: '&'
@@ -92,6 +102,7 @@ angular.module('ngUltimatePagination')
     `,
     controller: UltimatePaginationItemController,
     bindings: {
+      theme: '<',
       type: '<',
       value: '<',
       isActive: '<',
@@ -99,11 +110,11 @@ angular.module('ngUltimatePagination')
     }
   });
 
-UltimatePaginationItemController.$inject = ['ultimatePaginationTemplates'];
-function UltimatePaginationItemController(ultimatePaginationTemplates) {
+UltimatePaginationItemController.$inject = ['ultimatePaginationThemes'];
+function UltimatePaginationItemController(ultimatePaginationThemes) {
   var ctrl = this;
 
   ctrl.getItemTemplateUrl = function() {
-    return ultimatePaginationTemplates.getTemplateUrlByItemType(ctrl.type);
+    return ultimatePaginationThemes.getItemTemplateUrl(ctrl.theme, ctrl.type);
   }
 }

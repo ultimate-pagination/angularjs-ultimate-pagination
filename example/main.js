@@ -7,9 +7,9 @@
     .run(run)
     .controller('MainController', MainController);
 
-  config.$inject = ['ultimatePaginationTemplatesProvider'];
-  function config(ultimatePaginationTemplatesProvider) {
-    ultimatePaginationTemplatesProvider.setItemTypeToTemplateUrlMap({
+  config.$inject = ['ultimatePaginationThemesProvider'];
+  function config(ultimatePaginationThemesProvider) {
+    ultimatePaginationThemesProvider.registerTheme('basic', {
       PAGE: 'page.html',
       ELLIPSIS: 'ellipsis.html',
       FIRST_PAGE_LINK: 'first-page-link.html',
@@ -17,6 +17,8 @@
       NEXT_PAGE_LINK: 'next-page-link.html',
       LAST_PAGE_LINK: 'last-page-link.html'
     });
+
+    ultimatePaginationThemesProvider.setDefaultTheme('basic');
   }
 
   run.$inject = ['$templateCache'];
