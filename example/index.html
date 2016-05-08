@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Angular Ultimate Pagination</title>
+</head>
+<body>
+<div ng-app="ngUltimatePaginationExample">
+  <h1>Angular Ultimate Pagination</h1>
+  <div ng-controller="MainController as vm">
+      <ultimate-pagination
+        current-page="vm.currentPage"
+        total-pages="vm.totalPages"
+        on-change="vm.onPageChange($event)"
+      ></ultimate-pagination>
+  </div>
+</div>
+
+<script src="../node_modules/angular/angular.js"></script>
+<script src="../dist/angular-ultimate-pagination.js"></script>
+<script src="./main.js"></script>
+</body>
+</html>
