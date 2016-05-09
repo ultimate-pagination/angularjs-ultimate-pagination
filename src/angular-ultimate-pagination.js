@@ -121,3 +121,5 @@ function UltimatePaginationItemController(ultimatePaginationThemes) {
     return ultimatePaginationThemes.getItemTemplateUrl(ctrl.theme, ctrl.type);
   }
 }
+
+export default 'ngUltimatePagination';
