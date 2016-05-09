@@ -80,10 +80,15 @@ function UltimatePaginationController() {
     calculatePaginationModel();
   };
 
+  ctrl.$onChanges = function(changesObj) {
+    if (changesObj.currentPage || changesObj.totalPages) {
+      calculatePaginationModel();
+    }
+  };
+
   ctrl.onItemClick = function(item) {
     if (ctrl.currentPage !== item.value) {
-      ctrl.currentPage = item.value;
-      calculatePaginationModel();
+      ctrl.onChange({$event: item.value});
     }
   }
 
@@ -97,9 +102,7 @@ function UltimatePaginationController() {
 
 angular.module('ngUltimatePagination')
   .component('ultimatePaginationItem', {
-    template: `
-      <ng-include src="$ctrl.getItemTemplateUrl()"></ng-include>
-    `,
+    template: '<ng-include src="$ctrl.getItemTemplateUrl()"></ng-include>',
     controller: UltimatePaginationItemController,
     bindings: {
       theme: '<',

@@ -8,6 +8,10 @@
 <div ng-app="ngUltimatePaginationExample">
   <h1>Angular Ultimate Pagination</h1>
   <div ng-controller="MainController as vm">
+      <fieldset>
+        <div><label>Current page: <br><input type="number" ng-model="vm.currentPage"></label></div>
+        <div><label>Total pages: <br><input type="number" ng-model="vm.totalPages"></label></div>
+      </fieldset>
       <ultimate-pagination
         current-page="vm.currentPage"
         total-pages="vm.totalPages"
