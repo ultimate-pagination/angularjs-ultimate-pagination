@@ -4,47 +4,76 @@ import {getPaginationModel, ITEM_TYPES} from 'ultimate-pagination';
 angular.module('ngUltimatePagination', []);
 
 angular.module('ngUltimatePagination')
-  .provider('ultimatePaginationThemes', function() {
-    var themes = Object.create(null);
-    var defaultTheme = 'default';
+  .constant('DEFAULT_WRAPPER_TEMPALTE_URL', 'ng-ulatimate-pagination/default-wrapper.html');
 
+angular.module('ngUltimatePagination')
+  .run(addDefaultWrapperTemplateToTemplateCache);
+
+addDefaultWrapperTemplateToTemplateCache.$inject = ['$templateCache', 'DEFAULT_WRAPPER_TEMPALTE_URL'];
+function addDefaultWrapperTemplateToTemplateCache($templateCache, DEFAULT_WRAPPER_TEMPALTE_URL) {
+  $templateCache.put(DEFAULT_WRAPPER_TEMPALTE_URL, '<div ultimate-pagination-transclude></div>');
+}
+
+angular.module('ngUltimatePagination')
+  .provider('ultimatePaginationThemes', ultimatePaginationThemesProvider);
+
+ultimatePaginationThemesProvider.$inject = [];
+function ultimatePaginationThemesProvider() {
+  var themes = Object.create(null);
+  var defaultTheme = 'default';
+
+  return {
+    registerTheme: registerTheme,
+    setDefaultTheme: setDefaultTheme,
+    $get: ultimatePaginationThemes
+  };
+
+  //////////
+
+  function registerTheme(themeName, theme) {
+    themes[themeName] = theme;
+  }
+
+  function setDefaultTheme(_defaultTheme_) {
+    defaultTheme = _defaultTheme_;
+  }
+
+  ultimatePaginationThemes.$inject = ['DEFAULT_WRAPPER_TEMPALTE_URL']
+  function ultimatePaginationThemes(DEFAULT_WRAPPER_TEMPALTE_URL) {
     return {
-      registerTheme: registerTheme,
-      setDefaultTheme: setDefaultTheme,
-      $get: $get
+      getItemTemplateUrl: getItemTemplateUrl,
+      getWrapperTemplateUrl: getWrapperTemplateUrl
     };
 
     //////////
 
-    function registerTheme(themeName, itemTypeToTemplateUrlMap) {
-      themes[themeName] = itemTypeToTemplateUrlMap;
+    function getItemTemplateUrl(themeName, itemType) {
+      var resolvedThemeName = themeName || defaultTheme;
+      var theme = _getTheme(resolvedThemeName);
+      var templateUrl = theme.itemTypeToTemplateUrl && theme.itemTypeToTemplateUrl[itemType];
+      if (templateUrl) {
+        return templateUrl;
+      } else {
+        throw new Error(`Theme "${resolvedThemeName}" does not have a template url for item type "${itemType}"`);
+      }
     }
 
-    function setDefaultTheme(_defaultTheme_) {
-      defaultTheme = _defaultTheme_;
+    function getWrapperTemplateUrl(themeName) {
+      var resolvedThemeName = themeName || defaultTheme;
+      var theme = _getTheme(resolvedThemeName);
+      return theme.wrapperTemplateUrl || DEFAULT_WRAPPER_TEMPALTE_URL;
     }
 
-    $get.$inject = ['$log']
-    function $get($log) {
-      return {
-        getItemTemplateUrl: function(themeName, itemType) {
-          var templateUrl;
-          var resolvedThemeName = themeName || defaultTheme;
-          var itemTypeToTemplateUrlMap = themes[resolvedThemeName];
-          if (itemTypeToTemplateUrlMap) {
-            templateUrl = itemTypeToTemplateUrlMap[itemType];
-            if (templateUrl) {
-              return templateUrl;
-            } else {
-              $log.error(`Theme "${resolvedThemeName}" does not have a template url for item type "${itemType}"`);
-            }
-          } else {
-            $log.error(`Theme "${resolvedThemeName}" is not registered in "ultimatePaginationThemesProvider"`);
-          }
+    function _getTheme(themeName) {
+        var theme = themes[themeName];
+        if (theme) {
+          return theme;
+        } else {
+          throw new Error(`Theme "${themeName}" is not registered in "ultimatePaginationThemesProvider"`);
         }
-      };
     }
-  });
+  }
+}
 
 
 angular.module('ngUltimatePagination')
@@ -119,6 +148,53 @@ function UltimatePaginationItemController(ultimatePaginationThemes) {
 
   ctrl.getItemTemplateUrl = function() {
     return ultimatePaginationThemes.getItemTemplateUrl(ctrl.theme, ctrl.type);
+  }
+}
+
+angular.module('ngUltimatePagination')
+  .component('ultimatePaginationWrapper', {
+    template: '<ng-include src="$ctrl.getWrapperTemplateUrl()"></ng-include>',
+    transclude: true,
+    controller: UltimatePaginationWrapperController,
+    bindings: {
+      theme: '<'
+    }
+  });
+
+UltimatePaginationWrapperController.$inject = ['$transclude', 'ultimatePaginationThemes'];
+function UltimatePaginationWrapperController($transclude, ultimatePaginationThemes) {
+  var ctrl = this;
+
+  ctrl.getWrapperTemplateUrl = function() {
+    return ultimatePaginationThemes.getWrapperTemplateUrl(ctrl.theme);
+  }
+
+  ctrl.transclude = $transclude;
+}
+
+angular.module('ngUltimatePagination')
+  .directive('ultimatePaginationTransclude', ultimatePaginationTranscludeDirective);
+
+ultimatePaginationTranscludeDirective.$inject = [];
+function ultimatePaginationTranscludeDirective() {
+  return {
+    restrict: 'EA',
+    require: '^^ultimatePaginationWrapper',
+    link: ultimatePaginationTranscludeLink
+  };
+
+  //////////
+
+  function ultimatePaginationTranscludeLink($scope, $element, $attrs, ultimatePaginationWrapperCtrl) {
+    ultimatePaginationWrapperCtrl.transclude(ngTranscludeCloneAttachFn, null, '');
+
+
+    function ngTranscludeCloneAttachFn(clone) {
+      if (clone.length) {
+        $element.empty();
+        $element.append(clone);
+      }
+    }
   }
 }
 

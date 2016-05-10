@@ -10,12 +10,15 @@
   config.$inject = ['ultimatePaginationThemesProvider'];
   function config(ultimatePaginationThemesProvider) {
     ultimatePaginationThemesProvider.registerTheme('basic', {
-      PAGE: 'page.html',
-      ELLIPSIS: 'ellipsis.html',
-      FIRST_PAGE_LINK: 'first-page-link.html',
-      PREVIOS_PAGE_LINK: 'previos-page-link.html',
-      NEXT_PAGE_LINK: 'next-page-link.html',
-      LAST_PAGE_LINK: 'last-page-link.html'
+      itemTypeToTemplateUrl: {
+        PAGE: 'page.html',
+        ELLIPSIS: 'ellipsis.html',
+        FIRST_PAGE_LINK: 'first-page-link.html',
+        PREVIOS_PAGE_LINK: 'previos-page-link.html',
+        NEXT_PAGE_LINK: 'next-page-link.html',
+        LAST_PAGE_LINK: 'last-page-link.html'
+      },
+      wrapperTemplateUrl: 'wrapper.html'
     });
 
     ultimatePaginationThemesProvider.setDefaultTheme('basic');
@@ -23,6 +26,7 @@
 
   run.$inject = ['$templateCache'];
   function run($templateCache) {
+    $templateCache.put('wrapper.html', '<div class="pagination" ultimate-pagination-transclude></div>');
     $templateCache.put('page.html', '<button ng-style="$ctrl.isActive ? {fontWeight: \'bold\'}: null" ng-click="$ctrl.onClick()">{{::$ctrl.value}}</button>');
     $templateCache.put('ellipsis.html', '<button ng-click="$ctrl.onClick()">...</button>');
     $templateCache.put('first-page-link.html', '<button ng-click="$ctrl.onClick()">First</button>');
